@@ -1,0 +1,43 @@
+import requests
+from bs4 import BeautifulSoup
+import docx
+import datetime
+
+# Get the current date and time
+now = datetime.datetime.now()
+
+# Create a new document
+document = docx.Document()
+
+# Add a title to the document
+document.add_heading("Forensic_RSS", 0)
+
+# List of websites to scrape
+websites = [
+    "https://www.exploreforensics.co.uk/feed/",
+    "https://forensicresources.org/?s=rss",
+    "https://www.saudicsi.com/feed/",
+]
+
+# Scrape the content from the websites and add it to the document
+for url in websites:
+    # Make a request to the website
+    response = requests.get(url)
+
+    # Parse the XML content
+    soup = BeautifulSoup(response.content, "xml")
+
+    # Find all the items in the RSS feed
+    items = soup.find_all("item")[:7]
+
+    # Add the title, description, and date of each item to the document
+    for item in items:
+        title = item.find("title")
+        description = item.find("description")
+        date = item.find("pubDate")
+        link = item.find("link")
+        document.add_heading(title.text, level=1)
+        document.add_paragraph(f"{date.text}\n\n{description.text}")
+        document.add_paragraph(f"Website: {link.text}")
+# Save the document to a file
+document.save(f"Desktop/rss.{now.day}_{now.month}_{now.year}.docx")
